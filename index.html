@@ -217,7 +217,6 @@ font-family:'Caveat',cursive; font-size:19px; color:var(--green-deep); display:n
 #view-diary{ min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:26px 14px 40px; }
 .diary-topbar{ width:100%; max-width:980px; display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
 .diary-title-mini{ font-family:'Homemade Apple',cursive; font-size:26px; color:var(--green-deep); }
-.diary-toc-btn{ background:var(--green-deep); color:var(--paper); border:none; padding:9px 16px; border-radius:4px; font-size:14px; letter-spacing:.03em; }
 .book-wrap{
 width:100%; max-width:980px; perspective:2400px;
 display:flex; align-items:center; gap:10px; justify-content:center;
@@ -259,8 +258,10 @@ backface-visibility:hidden;
 }
 .pg-relationship{ font-family:'Caveat',cursive; color:var(--burgundy); font-size:18px; margin:0 0 2px;}
 .pg-heading{ font-family:'Homemade Apple',cursive; font-size:32px; color:var(--green-deep); margin:0 0 14px; }
-.pg-body-grid{ display:flex; gap:22px; flex-wrap:wrap; align-items:flex-start; }
-.pg-photo{ width:150px; flex-shrink:0; transform:rotate(-3deg); }
+.pg-body-grid{ display:flex; gap:22px; align-items:flex-start; }
+.pg-photo-strip{ display:flex; flex-direction:column; gap:14px; flex-shrink:0; }
+.pg-photo{ width:150px; transform:rotate(-3deg); }
+.pg-photo:nth-child(even){ transform:rotate(2deg); }
 .pg-photo img{ height:150px; }
 .pg-text{ flex:1; min-width:220px; font-size:18px; line-height:1.7; color:#3a3931; }
 .love-grid{
@@ -279,15 +280,12 @@ box-shadow:0 4px 10px rgba(41,32,20,0.1);
 .cover-page{ display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; background:radial-gradient(ellipse at 50% 30%, rgba(184,147,90,0.12), transparent 60%);}
 .cover-page h1{ font-family:'Homemade Apple',cursive; font-size:44px; color:var(--green-deep); margin:0;}
 .cover-page p{ font-style:italic; color:#6b6a5f; margin-top:10px;}
-.jump-nav{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:20px; max-width:820px;}
-.jump-nav button{ background:var(--paper-warm); border:1px solid var(--paper-edge); padding:7px 13px; border-radius:20px; font-size:13px; color:var(--green-deep);}
-.jump-nav button.current{ background:var(--green-deep); color:var(--paper); }
-.jump-nav button.dot{ padding:0; width:10px; height:10px; border-radius:50%; font-size:0; }
 @media (max-width:640px){
 .book{ min-height:520px; aspect-ratio:auto; }
 .page-face{ padding:28px 22px 24px; }
-.pg-photo{ width:120px; }
-.pg-photo img{ height:120px; }
+.pg-photo{ width:100px; }
+.pg-photo img{ height:100px; }
+.pg-photo-strip{ gap:10px; }
 }
 #view-admin{ padding:40px 22px 80px; max-width:1080px; margin:0 auto; }
 .admin-head{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom:28px;}
@@ -380,7 +378,6 @@ tr.dragging{ opacity:0.4; }
 <section id="view-diary" class="view">
 <div class="diary-topbar">
 <span class="diary-title-mini">30 Years of You</span>
-<button class="diary-toc-btn" id="tocBtn">Jump to a page ▾</button>
 </div>
 <div class="book-wrap" id="bookWrap">
 <button class="flip-btn" id="prevBtn" aria-label="Previous page">‹</button>
@@ -391,7 +388,6 @@ tr.dragging{ opacity:0.4; }
 <p class="hand" style="font-size:26px;color:var(--green-deep);">This diary isn't published yet</p>
 <p style="color:#7c7460;max-width:360px;margin:8px auto 0;">The admin is still gathering pages. Check back soon — or add your own page while you wait.</p>
 </div>
-<div class="jump-nav" id="jumpNav"></div>
 </section>
 
 <!-- ===================== ADMIN DASHBOARD ===================== -->
@@ -544,7 +540,6 @@ function goTo(name){
       const gated = !publishState;
       document.getElementById('diaryGate').classList.toggle('show', gated);
       document.getElementById('bookWrap').style.display = gated ? 'none' : 'flex';
-      document.getElementById('jumpNav').style.display = gated ? 'none' : 'flex';
       if(!gated){ current = 0; buildPages(); renderCurrent(false); }
     })();
   }
@@ -664,7 +659,6 @@ document.getElementById('contribForm').addEventListener('submit', async (e)=>{
 
 /* ===================== DIARY BOOK ===================== */
 const book = document.getElementById('book');
-const jumpNav = document.getElementById('jumpNav');
 let pages = [];
 let current = 0;
 let navLocked = false;
@@ -691,7 +685,7 @@ function pageHTML(p){
     return `<div style="position:relative;height:100%;">
       <h3 class="pg-heading">A message from ${e.name}</h3>
       <div class="pg-body-grid">
-        ${polaroids}
+        <div class="pg-photo-strip">${polaroids}</div>
         <p class="pg-text">${e.text}</p>
       </div>
     </div>`;
@@ -727,7 +721,6 @@ function renderCurrent(direction){
   book.appendChild(face);
   document.getElementById('prevBtn').disabled = current===0 || navLocked;
   document.getElementById('nextBtn').disabled = current===pages.length-1 || navLocked;
-  buildJumpNav();
 }
 
 function goToPage(idx){
@@ -738,23 +731,8 @@ function goToPage(idx){
   setTimeout(()=>{ navLocked=false; document.getElementById('prevBtn').disabled = current===0; document.getElementById('nextBtn').disabled = current===pages.length-1; }, 580);
 }
 
-function buildJumpNav(){
-  jumpNav.innerHTML = '';
-  pages.forEach((p,i)=>{
-    const b = document.createElement('button');
-    if(p.type==='cover'){ b.textContent = 'Cover'; }
-    else if(p.type==='love'){ b.textContent = 'Love List'; }
-    else if(p.type==='final'){ b.textContent = 'Finale'; }
-    else { b.textContent = '●'; b.classList.add('dot'); b.setAttribute('aria-label', 'A page in the diary'); }
-    if(i===current) b.classList.add('current');
-    b.addEventListener('click', ()=> goToPage(i));
-    jumpNav.appendChild(b);
-  });
-}
-
 document.getElementById('prevBtn').addEventListener('click', ()=>{ if(current>0) goToPage(current-1); });
 document.getElementById('nextBtn').addEventListener('click', ()=>{ if(current<pages.length-1) goToPage(current+1); });
-document.getElementById('tocBtn').addEventListener('click', ()=>{ jumpNav.scrollIntoView({behavior:'smooth', block:'center'}); });
 
 let touchX = null;
 book.addEventListener('touchstart', e=> touchX = e.touches[0].clientX);
