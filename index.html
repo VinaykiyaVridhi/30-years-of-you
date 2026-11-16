@@ -441,7 +441,7 @@ tr.dragging{ opacity:0.4; }
    Paste the URL you got from Deploy ▸ New deployment ▸ Web app here.
    See Code.gs for the script this talks to.
    ===================================================================== */
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxx7OssaowRfht0CKTTTOTGqKpyuuQa0-DJs8UarnAha9UdU1MxkjK-TZCz-83D2aUk/exec';
+const APPS_SCRIPT_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
 
 function adminSecret(){ return sessionStorage.getItem('diary_admin_secret') || ''; }
 
@@ -744,7 +744,7 @@ function goToPage(idx){
 
 function buildJumpNav(){
   jumpNav.innerHTML = '';
-  const labels = ['Cover', ...adminData.map(e=>e.name.split(' ')[0]), 'Love List', 'Finale'];
+  const labels = ['Cover', ...adminData.map((e,i)=>'Page '+(i+1)), 'Love List', 'Finale'];
   labels.forEach((l,i)=>{
     const b = document.createElement('button');
     b.textContent = l;
@@ -888,7 +888,7 @@ function getDragAfterElement(container, y){
   }, { offset: -Infinity }).element;
 }
 
-if(APPS_SCRIPT_URL.indexOf('PASTE_YOUR') === 0){
+if(APPS_SCRIPT_URL.indexOf('https://script.google.com/macros/s/AKfycbxx7OssaowRfht0CKTTTOTGqKpyuuQa0-DJs8UarnAha9UdU1MxkjK-TZCz-83D2aUk/exec') === 0){
   const banner = document.getElementById('storageBanner');
   banner.textContent = 'Set APPS_SCRIPT_URL in index.html to connect the backend.';
   banner.classList.add('show');
