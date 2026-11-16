@@ -325,8 +325,6 @@ tr.dragging{ opacity:0.4; }
 <!-- ===================== LANDING ===================== -->
 <section id="view-landing" class="view active">
 <div class="landing-bg"></div>
-<div class="float-photo fp1"><img src="https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?q=80&w=400&auto=format&fit=crop" alt=""><span>circa forever</span></div>
-<div class="float-photo fp2"><img src="https://images.unsplash.com/photo-1541963463532-d68292c34b19?q=80&w=400&auto=format&fit=crop" alt=""><span>always us</span></div>
 <div class="landing-inner">
 <span class="landing-eyebrow">a diary, written by all of us</span>
 <h1 class="landing-title">30 Years of You</h1>
@@ -454,11 +452,6 @@ async function apiPost(body){
 }
 
 /* ===================== DATA ===================== */
-const photos = [
-  "https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?q=80&w=500&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1541963463532-d68292c34b19?q=80&w=500&auto=format&fit=crop"
-];
-
 let adminData = [];      // entries currently shown (diary or admin table)
 let publishState = true;
 
@@ -467,8 +460,8 @@ function rowToEntry(row){
     id: row.id,
     name: row.name || 'Anonymous',
     text: row.message || '',
-    photo: (row.photos && row.photos[0]) || photos[Math.floor(Math.random()*photos.length)],
-    photos: row.photos && row.photos.length ? row.photos : [photos[Math.floor(Math.random()*photos.length)]],
+    photo: (row.photos && row.photos[0]) || '',
+    photos: row.photos || [],
     status: row.status === 'approved' ? 'Approved' : (row.status === 'rejected' ? 'Rejected' : 'Pending'),
     sort_order: row.sort_order
   };
@@ -682,10 +675,11 @@ function pageHTML(p){
   if(p.type==='entry'){
     const e = p.data;
     const polaroids = e.photos.map(url=>`<figure class="polaroid pg-photo"><img src="${url}" alt=""><figcaption>${e.name}</figcaption></figure>`).join('');
+    const strip = e.photos.length ? `<div class="pg-photo-strip">${polaroids}</div>` : '';
     return `<div style="position:relative;height:100%;">
       <h3 class="pg-heading">A message from ${e.name}</h3>
       <div class="pg-body-grid">
-        <div class="pg-photo-strip">${polaroids}</div>
+        ${strip}
         <p class="pg-text">${e.text}</p>
       </div>
     </div>`;
@@ -794,7 +788,7 @@ async function renderAdmin(){
     tr.dataset.idx = idx;
     tr.innerHTML = `
       <td><span class="drag-handle">⠿</span></td>
-      <td><img class="row-thumb" src="${e.photo}"></td>
+      <td>${e.photo ? `<img class="row-thumb" src="${e.photo}">` : '<span style="color:#b8ae8f;font-size:12px;">no photo</span>'}</td>
       <td>${e.name}</td>
       <td style="max-width:260px;">${e.text.slice(0,80)}${e.text.length>80?'…':''}</td>
       <td><span class="status-pill ${e.status==='Approved'?'status-approved':'status-pending'}">${e.status}</span></td>
