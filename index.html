@@ -217,6 +217,14 @@ font-family:'Caveat',cursive; font-size:19px; color:var(--green-deep); display:n
 #view-diary{ min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:26px 14px 40px; }
 .diary-topbar{ width:100%; max-width:980px; display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
 .diary-title-mini{ font-family:'Homemade Apple',cursive; font-size:26px; color:var(--green-deep); }
+.diary-toc-btn{ background:var(--green-deep); color:var(--paper); border:none; padding:9px 16px; border-radius:4px; font-size:14px; letter-spacing:.03em; }
+@media print{
+  body > *:not(#printArea){ display:none !important; }
+  #printArea{ display:block !important; }
+  .print-page{ page-break-after:always; padding:40px; min-height:90vh; position:relative; }
+  .print-page:last-child{ page-break-after:auto; }
+}
+#printArea{ display:none; }
 .book-wrap{
 width:100%; max-width:980px; perspective:2400px;
 display:flex; align-items:center; gap:10px; justify-content:center;
@@ -376,6 +384,7 @@ tr.dragging{ opacity:0.4; }
 <section id="view-diary" class="view">
 <div class="diary-topbar">
 <span class="diary-title-mini">30 Years of You</span>
+<button class="diary-toc-btn" id="downloadPdfBtn">📥 Download as PDF</button>
 </div>
 <div class="book-wrap" id="bookWrap">
 <button class="flip-btn" id="prevBtn" aria-label="Previous page">‹</button>
@@ -426,6 +435,8 @@ tr.dragging{ opacity:0.4; }
 </div>
 </div>
 </section>
+
+<div id="printArea"></div>
 
 <div class="storage-banner" id="storageBanner"></div>
 
@@ -727,6 +738,13 @@ function goToPage(idx){
 
 document.getElementById('prevBtn').addEventListener('click', ()=>{ if(current>0) goToPage(current-1); });
 document.getElementById('nextBtn').addEventListener('click', ()=>{ if(current<pages.length-1) goToPage(current+1); });
+
+/* ===================== DOWNLOAD AS PDF ===================== */
+document.getElementById('downloadPdfBtn').addEventListener('click', ()=>{
+  const printArea = document.getElementById('printArea');
+  printArea.innerHTML = pages.map(p => `<div class="print-page">${pageHTML(p)}</div>`).join('');
+  window.print();
+});
 
 let touchX = null;
 book.addEventListener('touchstart', e=> touchX = e.touches[0].clientX);
